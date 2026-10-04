@@ -765,7 +765,7 @@ function load(name, table, isSample){
   DS.sample = !!isSample;
   DS.values = DS.cols.map(function(c, i){ return c.type === 'category' ? Array.from(new Set(DS.rows.map(function(r){ return r[i]; }).filter(function(v){ return v != null; }).map(String))).sort() : null; });
   DS.dateCol = DS.cols.findIndex(function(c){ return c.type === 'date'; });
-  $('#fileName').innerHTML = esc(name) + '<small>' + DS.rows.length.toLocaleString() + ' rows · ' + DS.cols.length + ' columns</small>';
+  $('#fileName').innerHTML = esc(name) + '<small>' + DS.rows.length.toLocaleString('en-US') + ' rows · ' + DS.cols.length + ' columns</small>';
   $('#cols').innerHTML = DS.cols.map(function(c){ return '<span class="col ' + c.type + '" title="' + c.type + '">' + esc(c.name) + '</span>'; }).join('');
   $('#colBox').classList.remove('hidden');
   $('#hero').classList.add('hidden');
