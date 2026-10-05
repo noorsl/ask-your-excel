@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask your Excel</title>
+<meta name="description" content="Upload a spreadsheet and ask questions about it in Arabic or English.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f5f2; --panel:#fff; --ink:#18221d; --muted:#647069; --line:#dfe5df;
+  --green:#127a4b; --green-soft:#e2f2e9; --lime:#c8e86b; --you:#18221d; --warn:#a15c00; --bad:#b23a3a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Rubik,system-ui,"Segoe UI",Tahoma,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:310px 1fr;min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--green);display:grid;place-items:center;position:relative}
+.logo:after{content:"";position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;background:var(--lime);border:2px solid #fff}
+.brand h1{font-size:19px;margin:0;line-height:1.1}
+.brand p{margin:0;color:var(--muted);font-size:12.5px}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px}
+.box h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}
+.file{font-weight:600;word-break:break-all}
+.file small{display:block;color:var(--muted);font-weight:400}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;font-weight:600}
+.btn:hover{border-color:var(--green)}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.cols{display:flex;flex-wrap:wrap;gap:5px}
+.col{font-size:12.5px;padding:2px 8px;border-radius:99px;background:#eef1ed}
+.col.number{background:var(--green-soft);color:var(--green)}
+.col.date{background:#e5edf8;color:#2f5f9a}
+.col.category{background:#f6efd9;color:#7d5c0f}
+.ai label{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
+.ai .more{margin-top:10px;display:grid;gap:8px}
+.ai input[type=password],.ai select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.ai p{margin:0;color:var(--muted);font-size:12.5px}
+.priv{font-size:12.5px;color:var(--muted);margin-top:auto}
+main{display:flex;flex-direction:column;min-width:0;height:100vh}
+.thread{flex:1;overflow-y:auto;padding:24px clamp(16px,4vw,48px) 12px}
+.inner{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.hero{text-align:center;padding:40px 10px 10px}
+.hero h2{font-size:30px;margin:0 0 6px}
+.hero p{color:var(--muted);margin:0 auto 18px;max-width:560px}
+.drop{border:2px dashed #c4cdc5;border-radius:16px;padding:30px 16px;background:#fff;transition:.15s}
+.drop.over{border-color:var(--green);background:var(--green-soft)}
+.err{color:var(--bad);font-weight:600;margin-top:10px}
+.sugs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.sug{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:14px}
+.sug:hover{border-color:var(--green);color:var(--green)}
+.sug[dir=rtl]{font-family:Rubik,"Segoe UI",Tahoma,sans-serif}
+.msg{display:flex}
+.msg.you{justify-content:flex-end}
+.bubble{max-width:85%;padding:10px 14px;border-radius:14px}
+.you .bubble{background:var(--you);color:#fff;border-bottom-right-radius:4px}
+.you .bubble[dir=rtl]{border-bottom-right-radius:14px;border-bottom-left-radius:4px}
+.bot .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;width:100%;min-width:0}
+.ans{font-size:17px;font-weight:500}
+.ans b{font-weight:700;color:var(--green)}
+.how{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.how span.t{background:#eef1ed;color:var(--ink);border-radius:6px;padding:1px 7px}
+.how .eng{margin-left:auto;font-weight:600;color:var(--green)}
+.viz{margin-top:12px}
+.bars .b{display:grid;grid-template-columns:minmax(70px,30%) 1fr auto;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.bars .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bars .track{height:13px;background:#eef1ed;border-radius:7px;overflow:hidden}
+.bars .fill{height:100%;background:var(--green);border-radius:7px}
+.bars .b.top .fill{background:#0d5c38}
+.bars .b.top .lb{font-weight:700}
+.bars .v{font-weight:600;font-variant-numeric:tabular-nums}
+svg text{font:12px Rubik,system-ui,sans-serif;fill:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-size:12px;text-transform:uppercase}
+.tw{overflow-x:auto}
+.note{color:var(--muted);font-size:13px;margin-top:8px}
+.ask{border-top:1px solid var(--line);background:var(--panel);padding:12px clamp(16px,4vw,48px)}
+.ask form{max-width:880px;margin:0 auto;display:flex;gap:8px}
+.ask input{flex:1;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-size:16px;min-width:0}
+.ask input:focus{outline:none;border-color:var(--green)}
+.ask input:disabled{background:#f2f4f1}
+.typing{color:var(--muted);font-size:14px}
+.hidden{display:none!important}
+.sug-report{background:#127a4b;color:#fff;border-color:#127a4b;font-weight:600}.sug-report:hover{color:#fff;opacity:.9}
+.report h2{margin:0;font-size:22px}.report h3{font-size:16px;margin:18px 0 8px;color:#127a4b}.report h3 small{color:var(--muted);font-weight:400}
+.rhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.rhead p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px}.rk div{background:#f3f7f4;border-radius:10px;padding:10px;text-align:center}
+.rk b{display:block;font-size:22px}.rk span{font-size:12.5px;color:var(--muted)}.rk .warn{background:#fbecec}.rk .warn b{color:#b23a3a}
+.rrec{margin:0;padding-right:18px}.rrec li{margin:5px 0}
+.rt{width:100%;border-collapse:collapse;font-size:13.5px}.rt th,.rt td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}.rt th{font-size:12px;color:var(--muted)}
+.rt td.bad{color:#b23a3a;font-weight:700}.rt .bc{width:35%}.rb{display:block;height:10px;background:#eef1ed;border-radius:5px;overflow:hidden}.rb i{display:block;height:100%}
+.rtop{margin:0;padding-right:20px}.rtop li{margin:4px 0}
+@media print{body{overflow:visible!important;background:#fff}.app{display:block;height:auto!important}aside,.ask,.msg:not(.report-msg),.rprint{display:none!important}main{height:auto!important}.thread{overflow:visible!important;padding:0}.report-msg .card{border:0}.rt tr{break-inside:avoid}}
+
+[dir=rtl]{text-align:right}
+@media (min-width:861px){body{overflow:hidden}.app{height:100vh}aside{overflow-y:auto}}
+@media (max-width:860px){.ask{position:sticky;bottom:0}.app{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}main{height:auto;min-height:70vh}.priv{margin-top:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+      <div><h1>Ask your Excel</h1><p>اسأل ملفك · Arabic &amp; English</p></div>
+    </div>
+    <div class="box" id="fileBox">
+      <h2>File</h2>
+      <div class="file" id="fileName">No file yet<small>Upload .xlsx or .csv</small></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnPick" type="button">Upload file</button>
+        <button class="btn" id="btnSample" type="button">Sample data</button>
+      </div>
+      <input type="file" id="file" accept=".xlsx,.csv,.tsv,.txt" hidden>
+    </div>
+    <div class="box hidden" id="colBox">
+      <h2>Columns</h2>
+      <div class="cols" id="cols"></div>
+    </div>
+    <div class="box ai">
+      <h2>Smart mode (optional)</h2>
+      <label><input type="checkbox" id="aiOn"> Use Claude AI to understand any question</label>
+      <div class="more hidden" id="aiMore">
+        <input type="password" id="aiKey" placeholder="Your Anthropic API key" autocomplete="off">
+        <select id="aiModel">
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast, low cost)</option>
+          <option value="claude-sonnet-5">Claude Sonnet 5</option>
+        </select>
+        <p>The key stays in this tab only and is never saved. Claude receives only column names and category values — never your rows. All calculations run in your browser.</p>
+      </div>
+      <p id="aiOff" style="margin-top:6px">Off: questions are understood by built-in rules. Free, works offline.</p>
+    </div>
+    <div class="priv">🔒 Your file is read in your browser and never uploaded.</div>
+  </aside>
+
+  <main>
+    <div class="thread" id="thread"><div class="inner" id="inner">
+      <div class="hero" id="hero">
+        <h2>Ask your spreadsheet anything</h2>
+        <p>Upload an Excel or CSV file, then ask in Arabic or English — “What is the total sales in Riyadh?” or “مين أفضل وسيط؟”.</p>
+        <div class="drop" id="drop">
+          <div class="row" style="justify-content:center">
+            <button class="btn primary" id="btnPick2" type="button">Upload file</button>
+            <button class="btn" id="btnSample2" type="button">Try sample data</button>
+          </div>
+          <p style="margin:12px 0 0;color:var(--muted);font-size:14px">or drop a file here</p>
+          <div class="err" id="err"></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="ask">
+      <form id="askForm" autocomplete="off">
+        <input id="q" placeholder="Upload a file first…" disabled aria-label="Your question" dir="auto">
+        <button class="btn primary" id="send" disabled>Ask</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+var $ = function(s){ return document.querySelector(s); };
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_FULL = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+var MONTHS_AR = ['يناير','فبراير','مارس','ابريل','مايو','يونيو','يوليو','اغسطس','سبتمبر','اكتوبر','نوفمبر','ديسمبر'];
+var MONTHS_AR_SHOW = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+var DS = null;
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function bd(s){ return '<bdi>' + esc(s) + '</bdi>'; }
+function fmtDate(d){ return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+function fmt(n, lang){
+  if (n == null || !isFinite(n)) return '–';
+  var a = Math.abs(n), ar = lang === 'ar';
+  if (a >= 1e9) return +(n / 1e9).toFixed(2) + (ar ? ' مليار' : 'B');
+  if (a >= 1e6) return +(n / 1e6).toFixed(2) + (ar ? ' مليون' : 'M');
+  if (a >= 1e4) return +(n / 1e3).toFixed(1) + (ar ? ' ألف' : 'K');
+  return n.toLocaleString('en-US', { maximumFractionDigits: a < 10 ? 2 : a < 100 ? 1 : 0 });
+}
+
+/* ---------- value parsing ---------- */
+function toLatinDigits(s){ return s.replace(/[٠-٩]/g, function(c){ return String(c.charCodeAt(0) - 0x660); }).replace(/[۰-۹]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); }); }
+function parseNum(v){
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  if (typeof v !== 'string') return null;
+  var s = toLatinDigits(v.trim());
+  if (!s) return null;
+  var neg = /^\(.*\)$/.test(s);
+  s = s.replace(/[()]/g,'').replace(/SAR|SR|USD|EUR|ر\.?س\.?|[$€£%\s,٬]/gi,'').replace('٫','.');
+  if (!/^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(s)) return null;
+  var n = Number(s);
+  return isFinite(n) ? (neg ? -n : n) : null;
+}
+function parseDate(v){
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v !== 'string') return null;
+  var s = toLatinDigits(v.trim()), m;
+  if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T].*)?$/))) return mk(+m[1], +m[2], +m[3]);
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})(?: .*)?$/))) {
+    var a = +m[1], b = +m[2];
+    return b > 12 ? mk(+m[3], a, b) : mk(+m[3], b, a);   // day-first unless impossible
+  }
+  if ((m = s.match(/^(\d{4})-(\d{1,2})$/))) return mk(+m[1], +m[2], 1);
+  return null;
+  function mk(y, mo, d){ if (mo < 1 || mo > 12 || d < 1 || d > 31) return null; return new Date(Date.UTC(y, mo - 1, d)); }
+}
+function isEmpty(v){ return v == null || (typeof v === 'string' && v.trim() === ''); }
+
+/* ---------- CSV ---------- */
+function parseCSV(text){
+  text = text.replace(/^﻿/, '');
+  var first = text.split(/\r?\n/, 1)[0];
+  var cands = [',', ';', '\t', '|'], delim = ',', best = -1;
+  cands.forEach(function(c){ var k = first.split(c).length; if (k > best){ best = k; delim = c; } });
+  var rows = [], row = [], cell = '', q = false;
+  for (var i = 0; i < text.length; i++){
+    var ch = text[i];
+    if (q){
+      if (ch === '"'){ if (text[i+1] === '"'){ cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim){ row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r'){
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else cell += ch;
+  }
+  if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(function(r){ return r.some(function(c){ return c.trim() !== ''; }); });
+}
+
+/* ---------- XLSX (tiny built-in reader: zip + XML) ---------- */
+async function readZip(buf){
+  var dv = new DataView(buf), u8 = new Uint8Array(buf), eocd = -1;
+  for (var i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 70000); i--){ if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; } }
+  if (eocd < 0) throw new Error('This does not look like an .xlsx file.');
+  var count = dv.getUint16(eocd + 10, true), p = dv.getUint32(eocd + 16, true), files = {};
+  var td = new TextDecoder();
+  for (var k = 0; k < count; k++){
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    var method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    var nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+    var off = dv.getUint32(p + 42, true);
+    var name = td.decode(u8.subarray(p + 46, p + 46 + nlen));
+    files[name] = { method: method, csize: csize, off: off };
+    p += 46 + nlen + elen + clen;
+  }
+  return {
+    has: function(n){ return !!files[n]; },
+    names: Object.keys(files),
+    text: async function(n){
+      var f = files[n]; if (!f) return null;
+      var start = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true);
+      var data = u8.subarray(start, start + f.csize);
+      if (f.method === 0) return td.decode(data);
+      if (f.method !== 8) throw new Error('Unsupported compression in file.');
+      var ds = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(ds).text();
+    }
+  };
+}
+function xml(s){ return new DOMParser().parseFromString(s, 'application/xml'); }
+function colIndex(ref){ var m = /^([A-Z]+)/.exec(ref || ''), n = 0; if (!m) return -1; for (var i = 0; i < m[1].length; i++) n = n * 26 + m[1].charCodeAt(i) - 64; return n - 1; }
+async function parseXLSX(buf){
+  var z = await readZip(buf);
+  // find first sheet
+  var sheetPath = 'xl/worksheets/sheet1.xml';
+  try {
+    var wb = xml(await z.text('xl/workbook.xml')), rels = xml(await z.text('xl/_rels/workbook.xml.rels'));
+    var s0 = wb.getElementsByTagName('sheet')[0], rid = s0 && (s0.getAttribute('r:id') || s0.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id'));
+    Array.prototype.forEach.call(rels.getElementsByTagName('Relationship'), function(r){
+      if (r.getAttribute('Id') === rid){ var t = r.getAttribute('Target').replace(/^\//, ''); sheetPath = t.indexOf('xl/') === 0 ? t : 'xl/' + t; }
+    });
+  } catch (e) {}
+  if (!z.has(sheetPath)) sheetPath = z.names.filter(function(n){ return /^xl\/worksheets\/.*\.xml$/.test(n); }).sort()[0];
+  if (!sheetPath) throw new Error('No worksheet found in this file.');
+  // shared strings
+  var shared = [];
+  var ssTxt = await z.text('xl/sharedStrings.xml');
+  if (ssTxt){
+    Array.prototype.forEach.call(xml(ssTxt).getElementsByTagName('si'), function(si){
+      var t = ''; Array.prototype.forEach.call(si.getElementsByTagName('t'), function(x){ t += x.textContent; }); shared.push(t);
+    });
+  }
+  // date styles
+  var dateStyle = [];
+  var stTxt = await z.text('xl/styles.xml');
+  if (stTxt){
+    var st = xml(stTxt), custom = {};
+    Array.prototype.forEach.call(st.getElementsByTagName('numFmt'), function(f){ custom[f.getAttribute('numFmtId')] = f.getAttribute('formatCode') || ''; });
+    var xfs = st.getElementsByTagName('cellXfs')[0];
+    if (xfs) Array.prototype.forEach.call(xfs.getElementsByTagName('xf'), function(xf){
+      var id = +xf.getAttribute('numFmtId'), code = custom[id];
+      var isD = (id >= 14 && id <= 22) || (id >= 45 && id <= 47) || (code != null && /[dmy]/i.test(code.replace(/"[^"]*"|\[[^\]]*\]/g, '')) && !/^[#0.,%\s]+$/.test(code));
+      dateStyle.push(isD);
+    });
+  }
+  var sh = xml(await z.text(sheetPath)), out = [];
+  Array.prototype.forEach.call(sh.getElementsByTagName('row'), function(r){
+    var ri = (+r.getAttribute('r') || out.length + 1) - 1, row = [];
+    Array.prototype.forEach.call(r.getElementsByTagName('c'), function(c){
+      var ci = colIndex(c.getAttribute('r')); if (ci < 0) ci = row.length;
+      var t = c.getAttribute('t'), s = +(c.getAttribute('s') || 0);
+      var vEl = c.getElementsByTagName('v')[0], v = vEl ? vEl.textContent : null, val = null;
+      if (t === 's') val = shared[+v];
+      else if (t === 'inlineStr'){ val = ''; Array.prototype.forEach.call(c.getElementsByTagName('t'), function(x){ val += x.textContent; }); }
+      else if (t === 'str' || t === 'e') val = v;
+      else if (t === 'b') val = v === '1' ? 'TRUE' : 'FALSE';
+      else if (v != null){ var n = Number(v); val = dateStyle[s] ? new Date(Math.round((n - 25569) * 864e5)) : n; }
+      row[ci] = val;
+    });
+    out[ri] = row;
+  });
+  var w = out.reduce(function(m, r){ return Math.max(m, r ? r.length : 0); }, 0);
+  return out.filter(Boolean).map(function(r){ var a = []; for (var i = 0; i < w; i++) a.push(r[i] == null ? '' : r[i]); return a; })
+    .filter(function(r){ return r.some(function(c){ return !isEmpty(c); }); });
+}
+
+/* ---------- dataset ---------- */
+function buildDataset(name, table){
+  if (!table.length || table.length < 2) throw new Error('The file needs a header row and at least one data row.');
+  var header = table[0].map(function(h, i){ h = String(h == null ? '' : h).trim(); return h || ('Column ' + (i + 1)); });
+  var seen = {}; header = header.map(function(h){ if (seen[h]){ seen[h]++; return h + ' ' + seen[h]; } seen[h] = 1; return h; });
+  var body = table.slice(1), n = body.length;
+  var cols = header.map(function(h, ci){
+    var vals = body.map(function(r){ return r[ci]; }).filter(function(v){ return !isEmpty(v); });
+    var total = vals.length, type = 'text';
+    if (total){
+      var dN = vals.filter(function(v){ return parseDate(v); }).length;
+      var nN = vals.filter(function(v){ return parseNum(v) != null; }).length;
+      var uniq = new Set(vals.map(String)).size;
+      if (dN / total >= 0.9) type = 'date';
+      else if (nN / total >= 0.9) type = 'number';
+      else if (uniq <= Math.max(12, Math.min(60, n * 0.5))) type = 'category';
+    }
+    return { name: h, type: type, missing: n - total };
+  });
+  var rows = body.map(function(r){
+    return cols.map(function(c, ci){
+      var v = r[ci];
+      if (isEmpty(v)) return null;
+      if (c.type === 'number') return parseNum(v);
+      if (c.type === 'date') return parseDate(v);
+      return String(v instanceof Date ? fmtDate(v) : v).trim();
+    });
+  });
+  cols.forEach(function(c, ci){
+    var vals = rows.map(function(r){ return r[ci]; }).filter(function(v){ return v != null; });
+    c.uniq = new Set(vals.map(function(v){ return v instanceof Date ? v.getTime() : v; })).size;
+    if (c.type === 'number' || c.type === 'date'){
+      var nums = vals.map(function(v){ return +v; });
+      c.min = Math.min.apply(null, nums); c.max = Math.max.apply(null, nums);
+    }
+  });
+  return { name: name, cols: cols, rows: rows };
+}
+
+
+/* ---------- language helpers ---------- */
+function hasArabic(s){ return /[؀-ۿ]/.test(s); }
+function norm(s){
+  return toLatinDigits(String(s == null ? '' : s)).toLowerCase()
+    .replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+    .replace(/[?؟!.,،:;"'“”()\[\]{}\/\\|_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function stripWord(w){
+  if (w.length > 4 && /^(وال|بال|فال|كال)/.test(w)) return w.slice(3);
+  if (w.length > 3 && /^لل/.test(w)) return w.slice(2);
+  if (w.length > 3 && /^ال/.test(w)) return w.slice(2);
+  return w;
+}
+function stripAll(s){ return s.split(' ').map(stripWord).join(' '); }
+// is phrase p (already normalized) inside question variants?
+function hasPhrase(Q, p){
+  if (!p) return false;
+  var ps = stripAll(p);
+  return Q.raw.indexOf(' ' + p + ' ') > -1 || Q.stripped.indexOf(' ' + ps + ' ') > -1 || (Q.s2 && Q.s2.indexOf(' ' + ps + ' ') > -1);
+}
+
+// English ↔ Arabic words for common column names and values (all normalized)
+var COL_SYN = {
+  price:['سعر','قيمه','مبلغ','ثمن'], sales:['مبيعات','بيع'], revenue:['ايرادات','ايراد','دخل','مبيعات'], amount:['مبلغ','قيمه'], value:['قيمه'], total:['اجمالي'],
+  city:['مدينه','مدن'], agent:['وسيط','وسطاء','موظف','مندوب','مسوق','بائع'], source:['مصدر','مصادر'], type:['نوع','انواع'], property:['عقار','عقارات'],
+  status:['حاله','حالات','وضع'], district:['حي','احياء'], region:['منطقه','مناطق'], date:['تاريخ'], area:['مساحه'], commission:['عموله','عمولات'],
+  branch:['فرع','فروع'], product:['منتج','منتجات'], category:['فئه','تصنيف','قسم','اقسام'], customer:['عميل','عملاء','زبون'], client:['عميل','عملاء'],
+  quantity:['كميه'], units:['وحدات','كميه'], qty:['كميه'], profit:['ربح','ارباح'], cost:['تكلفه','تكاليف'], channel:['قناه','قنوات'], rating:['تقييم'],
+  deals:['صفقات','صفقه'], employee:['موظف','موظفين'], department:['قسم','اقسام','اداره'], salary:['راتب','رواتب'], month:['شهر']
+};
+var VAL_SYN = {
+  riyadh:['رياض'], jeddah:['جده'], dammam:['دمام'], khobar:['خبر'], makkah:['مكه'], mecca:['مكه'], madinah:['مدينه المنوره'], medina:['مدينه المنوره'],
+  tabuk:['تبوك'], alula:['علا'], abha:['ابها'], taif:['طايف','طائف'], hail:['حايل','حائل'], jazan:['جازان'], najran:['نجران'], yanbu:['ينبع'], jubail:['جبيل'], qassim:['قصيم'],
+  villa:['فيلا','فلل','فله'], apartment:['شقه','شقق'], land:['ارض','اراضي'], office:['مكتب','مكاتب'], shop:['محل','محلات'], townhouse:['تاون هاوس','دوبلكس'],
+  won:['مغلقه','ناجحه','تم البيع','مكسوبه','مقفله'], lost:['خاسره','ضايعه','مفقوده','ملغيه'], open:['مفتوحه','جاريه','قيد المتابعه'],
+  website:['موقع','الموقع'], instagram:['انستقرام','انستغرام'], snapchat:['سناب','سناب شات'], referral:['توصيه','احاله'], 'walk in':['زياره','حضوري'],
+  'bothynah alsnany':['بثينه','بثينه السناني','bothynah'], 'mohammed salem':['محمد','محمد سالم','mohammed','mohamed','muhammad'], 'basma salem':['بسمه','بسمه سالم','basma'], 'shurooq ahmed':['شروق','شروق احمد','shurooq','shorouq'], buy:['شراء'], rent:['ايجار']
+};
+function arWordsFor(key){ return COL_SYN[key] || []; }
+
+/* ---------- question understanding (rules) ---------- */
+var KW = {
+  avg:['average','avg','mean','متوسط','معدل'],
+  count:['how many','count','number of','عدد','كم عدد','كم صفقه','كم عمليه','كم طالبه','كم طالب','كم موظف','كم عميل'],
+  max:['highest','max','maximum','most','largest','biggest','best','top','اعلي','اكثر','اكبر','افضل','الاعلي','الاكثر','الافضل','اقوي'],
+  min:['lowest','min','minimum','least','smallest','worst','bottom','اقل','اصغر','اسوا','اضعف','الاقل'],
+  sum:['total','sum','overall','اجمالي','مجموع','كامل'],
+  countNoun:['students','employees','طالبات','طلاب','موظفين','موظفات','deals','deal','rows','records','orders','transactions','leads','tickets','صفقات','صفقه','عمليات','طلبات','سجلات','صفوف','عملاء','تذاكر','حالات'],
+  trend:['trend','over time','monthly','by month','per month','each month','every month','month by month','تطور','شهريا','حسب الشهر','كل شهر','لكل شهر','بالشهور','على مدار'],
+  group:['by','per','each','for each','across','حسب','لكل','على حسب','بحسب','كل'],
+  who:['who','which','what','مين','من','اي','ايش','وش','ما هو','ما هي'],
+  compare:['compare','vs','versus','against','قارن','مقارنه','مقابل','ضد'],
+  money:['sales','revenue','amount','value','money','income','مبيعات','ايرادات','ايراد','قيمه','مبلغ','دخل','فلوس']
+};
+function anyKw(Q, list){ for (var i = 0; i < list.length; i++){ if (hasPhrase(Q, norm(list[i]))) return list[i]; } return null; }
+
+function colPhrases(c){
+  var n = norm(c.name.replace(/\(.*?\)/g, ''));
+  var out = [n];
+  n.split(' ').forEach(function(w){ if (w.length > 2){ out.push(w); if (!/[\u0600-\u06FF]/.test(w)) out.push(w + 's', w.replace(/y$/, 'ies')); } arWordsFor(w).forEach(function(a){ out.push(a); }); });
+  arWordsFor(n).forEach(function(a){ out.push(a); });
+  if (/[؀-ۿ]/.test(n)) out.push(stripAll(n));
+  return out.filter(function(v, i, a){ return v && a.indexOf(v) === i; });
+}
+var ID_LIKE = /(^|[\s_])(id|no|number|code|phone|mobile|zip|year|رقم)([\s_]|$)/i;
+function bestCol(Q, types, exclude){
+  var best = null, bestLen = 0;
+  DS.cols.forEach(function(c, i){
+    if (types.indexOf(c.type) < 0 || (exclude && exclude.indexOf(i) > -1)) return;
+    var phrases = c.type === 'number' && ID_LIKE.test(c.name) ? [norm(c.name)] : colPhrases(c);
+    phrases.forEach(function(p){ if (p.length > bestLen && hasPhrase(Q, p)){ best = i; bestLen = p.length; } });
+  });
+  return best;
+}
+function mentionedCols(Q, types){
+  var out = [];
+  DS.cols.forEach(function(c, i){
+    if (types.indexOf(c.type) < 0) return;
+    var hit = colPhrases(c).filter(function(p){ return hasPhrase(Q, p); }).map(function(p){ return Q.raw.indexOf(' ' + p + ' ') > -1 ? Q.raw.indexOf(' ' + p + ' ') : Q.stripped.indexOf(' ' + stripAll(p) + ' '); });
+    if (hit.length) out.push({ i: i, pos: Math.min.apply(null, hit) });
+  });
+  return out.sort(function(a, b){ return a.pos - b.pos; }).map(function(x){ return x.i; });
+}
+function valuePhrases(v){
+  var n = norm(v), out = [n, stripAll(n)];
+  if (!/[\u0600-\u06FF]/.test(n)) out.push(n + 's', n + 'es', n.replace(/y$/, 'ies'));
+  else if (/ه$/.test(stripAll(n))) out.push(stripAll(n).slice(0, -1) + 'ات');
+  (VAL_SYN[n] || []).forEach(function(a){ out.push(a); });
+  Object.keys(VAL_SYN).forEach(function(k){ if (VAL_SYN[k].indexOf(stripAll(n)) > -1) out.push(k); });
+  return out.filter(function(x, i, a){ return x && a.indexOf(x) === i; });
+}
+function findFilters(Q){
+  var f = [];
+  DS.cols.forEach(function(c, ci){
+    if (c.type !== 'category') return;
+    var hits = [];
+    var colNames = DS.cols.map(function(c){ return stripAll(norm(c.name)); });
+    DS.values[ci].forEach(function(v){
+      if (colNames.indexOf(stripAll(norm(v))) > -1 && !hasPhrase(Q, 'في ' + norm(v)) && !hasPhrase(Q, 'in ' + norm(v))) return;
+      if (valuePhrases(v).some(function(p){ return p.length > 1 && hasPhrase(Q, p); })) hits.push(v);
+    });
+    // drop values that are part of a longer matched value (e.g. "Riyadh" inside "North Riyadh")
+    hits = hits.filter(function(v){ return !hits.some(function(w){ return w !== v && norm(w).indexOf(norm(v)) > -1; }); });
+    if (hits.length) f.push({ col: ci, values: hits });
+  });
+  return f;
+}
+function findTime(Q){
+  var di = DS.cols.findIndex(function(c){ return c.type === 'date'; });
+  if (di < 0) return null;
+  var maxD = DS.cols[di].max, latest = new Date(maxD), y = null, m = null, t = null;
+  var ym = Q.raw.match(/ (20\d\d) /); if (ym) y = +ym[1];
+  for (var i = 0; i < 12; i++){
+    if (hasPhrase(Q, MONTHS_FULL[i]) || hasPhrase(Q, MONTHS[i].toLowerCase()) || hasPhrase(Q, MONTHS_AR[i])){ m = i; break; }
+  }
+  var start = function(yy, mm){ return Date.UTC(yy, mm, 1); };
+  if (m != null){
+    if (y == null){ y = latest.getUTCFullYear(); if (start(y, m) > maxD) y--; }
+    return { col: di, from: start(y, m), to: start(y, m + 1), label: { en: MONTHS[m] + ' ' + y, ar: MONTHS_AR_SHOW[m] + ' ' + y } };
+  }
+  var L = latest.getUTCFullYear(), LM = latest.getUTCMonth();
+  if (anyKw(Q, ['this month','current month','هذا الشهر','الشهر الحالي','هالشهر'])) return { col: di, from: start(L, LM), to: start(L, LM + 1), label: { en: MONTHS[LM] + ' ' + L, ar: MONTHS_AR_SHOW[LM] + ' ' + L } };
+  if (anyKw(Q, ['last month','previous month','الشهر الماضي','الشهر اللي فات','الشهر السابق'])){ var d = new Date(start(L, LM - 1)); return { col: di, from: start(L, LM - 1), to: start(L, LM), label: { en: MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear(), ar: MONTHS_AR_SHOW[d.getUTCMonth()] + ' ' + d.getUTCFullYear() } }; }
+  var lastN = Q.raw.match(/ (?:last|past|اخر|آخر) (\d+) (?:months|month|شهور|اشهر|شهر) /);
+  if (lastN){ var n = +lastN[1]; return { col: di, from: start(L, LM - n + 1), to: start(L, LM + 1), label: { en: 'last ' + n + ' months', ar: 'آخر ' + n + ' أشهر' } }; }
+  if (anyKw(Q, ['this year','هذه السنه','هذا العام','هالسنه','السنه الحاليه'])) y = L;
+  if (anyKw(Q, ['last year','السنه الماضيه','العام الماضي'])) y = L - 1;
+  if (y != null) return { col: di, from: Date.UTC(y, 0, 1), to: Date.UTC(y + 1, 0, 1), label: { en: String(y), ar: String(y) } };
+  return null;
+}
+function defaultMeasure(){
+  var nums = DS.cols.map(function(c, i){ return c.type === 'number' ? i : -1; }).filter(function(i){ return i >= 0; });
+  var idLike = /(^|[\s_])(id|no|number|code|phone|mobile|zip|year|رقم)([\s_]|$)/i;
+  var good = nums.filter(function(i){ return !idLike.test(DS.cols[i].name); });
+  var pref = /revenue|sales|amount|total|price|value|profit|income|مبيعات|ايراد|إيراد|مبلغ|قيمة|سعر/i;
+  var m = good.filter(function(i){ return pref.test(DS.cols[i].name); })[0];
+  if (m == null && good.length) m = good[0];
+  return m == null ? null : m;
+}
+
+function understand(question){
+  var lang = hasArabic(question) ? 'ar' : 'en';
+  var raw = ' ' + norm(question) + ' ';
+  var Q = { raw: raw, stripped: ' ' + stripAll(raw.trim()) + ' ' };
+  Q.s2 = ' ' + raw.trim().split(' ').map(function(w){ return w.length > 4 && /^[لبوف]/.test(w) ? stripWord(w.slice(1)) : stripWord(w); }).join(' ') + ' ';
+  var plan = { lang: lang, agg: null, measure: null, groupBy: null, filters: findFilters(Q), time: findTime(Q), top: null, sort: 'desc', engine: 'rules' };
+
+  if (anyKw(Q, KW.avg)) plan.agg = 'avg';
+  else if (anyKw(Q, KW.count)) plan.agg = 'count';
+  else if (anyKw(Q, KW.min)) plan.agg = 'min';
+  else if (anyKw(Q, KW.max)) plan.agg = 'max';
+  else if (anyKw(Q, KW.sum)) plan.agg = 'sum';
+
+  var tn = raw.match(/ (?:top|best|highest|lowest|افضل|اعلي|اكثر|اقل|اسوا) (\d+) /) || raw.match(/ (\d+) (?:top|best|افضل|اعلي) /);
+  if (tn) plan.top = +tn[1];
+
+  plan.measure = bestCol(Q, ['number']);
+  var countNoun = anyKw(Q, KW.countNoun);
+  plan.countWord = countNoun;
+  if (plan.measure == null){
+    if (anyKw(Q, KW.money) || anyKw(Q, KW.compare) || (plan.agg && plan.agg !== 'count' && !countNoun)) plan.measure = defaultMeasure();
+    else if (countNoun || !plan.agg) plan.agg = plan.agg && plan.agg !== 'sum' && plan.agg !== 'count' ? plan.agg : (plan.agg || 'count');
+  }
+  if (plan.measure == null && plan.agg !== 'count' && !countNoun) plan.measure = defaultMeasure();
+  if (plan.measure == null && (plan.agg === 'sum' || plan.agg === 'avg' || !plan.agg)) plan.agg = 'count';
+
+  // group by: a category column that is mentioned but not used as a filter, or a column with several filter values (comparison)
+  var filterCols = plan.filters.map(function(f){ return f.col; });
+  var mentioned = mentionedCols(Q, ['category']).filter(function(i){ return filterCols.indexOf(i) < 0; });
+  var multi = plan.filters.filter(function(f){ return f.values.length > 1; })[0];
+  if (anyKw(Q, KW.trend)) plan.groupBy = 'month';
+  else if (multi && anyKw(Q, KW.compare)) plan.groupBy = multi.col;
+  else if (mentioned.length) plan.groupBy = mentioned[0];
+  else if (multi) plan.groupBy = multi.col;
+  var mc = plan.measure != null ? DS.cols[plan.measure] : null;
+  var scoreLike = !!(mc && mc.max <= 100 && /درج|نسب|معدل|تقييم|علام|score|grade|mark|rate|rating|percent|%/i.test(mc.name));
+  var explicitSum = !!anyKw(Q, KW.sum);
+
+  // "highest / best X" with a group → rank groups; without a group → the single highest record
+  if (plan.agg === 'max' || plan.agg === 'min'){
+    plan.sort = plan.agg === 'min' ? 'asc' : 'desc';
+    if (plan.groupBy != null && plan.groupBy !== 'month'){ plan.agg = plan.measure == null ? 'count' : (scoreLike ? 'avg' : 'sum'); if (!plan.top || plan.top === 1){ plan.rank = true; plan.top = 1; } }
+  }
+  if (!plan.agg) plan.agg = plan.measure == null ? 'count' : (scoreLike ? 'avg' : 'sum');
+  if (plan.agg === 'sum' && scoreLike && !explicitSum) plan.agg = 'avg';
+  if (plan.top && plan.groupBy == null){
+    var g = DS.cols.findIndex(function(c){ return c.type === 'category'; });
+    if (g > -1) plan.groupBy = g;
+  }
+  if ((plan.agg === 'max' || plan.agg === 'min') && plan.groupBy != null && plan.groupBy !== 'month'){ plan.sort = plan.agg === 'min' ? 'asc' : 'desc'; plan.agg = plan.measure == null ? 'count' : (scoreLike ? 'avg' : 'sum'); if (plan.top === 1 || !plan.top){ plan.rank = true; plan.top = 1; } }
+  plan.understood = !!(plan.filters.length || plan.time || plan.groupBy != null || anyKw(Q, KW.avg.concat(KW.count, KW.max, KW.min, KW.sum, KW.money, KW.countNoun)) || bestCol(Q, ['number']) != null);
+  return plan;
+}
+
+/* ---------- optional: Claude turns the question into the same plan ---------- */
+async function understandWithClaude(question){
+  var key = $('#aiKey').value.trim();
+  if (!key) throw new Error('Add your API key in Smart mode, or turn Smart mode off.');
+  var schema = DS.cols.map(function(c, i){
+    var s = '- "' + c.name + '" (' + c.type + ')';
+    if (c.type === 'category') s += ' values: ' + JSON.stringify(DS.values[i].slice(0, 40));
+    if (c.type === 'date' && isFinite(c.min)) s += ' from ' + new Date(c.min).toISOString().slice(0, 10) + ' to ' + new Date(c.max).toISOString().slice(0, 10);
+    return s;
+  }).join('\n');
+  var system = 'You turn a question about a spreadsheet into a JSON query plan. Columns:\n' + schema +
+    '\nReturn ONLY JSON: {"agg":"sum|avg|count|max|min","measure":"numeric column name or null","group_by":"category column name, \\"month\\", or null","filters":[{"column":"name","values":["exact values from the list"]}],"date_from":"YYYY-MM-DD or null","date_to":"YYYY-MM-DD (exclusive) or null","top":number or null,"sort":"desc|asc"}.' +
+    ' For "which/who is best/highest X" use agg "sum" (or "count" for number of rows), group_by X, sort desc, top 1. Use only the columns and values listed. The question may be Arabic. If the question cannot be answered from these columns, return {"unanswerable":true}.';
+  var res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: $('#aiModel').value, max_tokens: 500, system: system, messages: [{ role: 'user', content: question }] })
+  });
+  var data = await res.json().catch(function(){ return {}; });
+  if (!res.ok) throw new Error((data.error && data.error.message) || ('API error ' + res.status));
+  var text = (data.content || []).map(function(b){ return b.text || ''; }).join('');
+  var j = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+  if (j.unanswerable) return { lang: hasArabic(question) ? 'ar' : 'en', understood: false, engine: 'claude' };
+  var byName = function(n){ if (n == null) return null; var k = DS.cols.findIndex(function(c){ return c.name.toLowerCase() === String(n).toLowerCase(); }); return k < 0 ? null : k; };
+  var plan = { lang: hasArabic(question) ? 'ar' : 'en', agg: ['sum','avg','count','max','min'].indexOf(j.agg) > -1 ? j.agg : 'sum', measure: byName(j.measure), groupBy: j.group_by === 'month' ? 'month' : byName(j.group_by),
+    filters: [], time: null, top: j.top ? +j.top : null, sort: j.sort === 'asc' ? 'asc' : 'desc', engine: 'claude', understood: true };
+  if (plan.measure != null && DS.cols[plan.measure].type !== 'number') plan.measure = null;
+  if (plan.groupBy != null && plan.groupBy !== 'month' && DS.cols[plan.groupBy].type !== 'category') plan.groupBy = null;
+  if (plan.measure == null && plan.agg !== 'count') plan.measure = defaultMeasure();
+  (j.filters || []).forEach(function(f){
+    var ci = byName(f.column); if (ci == null) return;
+    var vals = (f.values || []).map(String).filter(function(v){ return DS.values[ci] && DS.values[ci].indexOf(v) > -1; });
+    if (vals.length) plan.filters.push({ col: ci, values: vals });
+  });
+  var di = DS.cols.findIndex(function(c){ return c.type === 'date'; });
+  if (di > -1 && (j.date_from || j.date_to)){
+    var f = j.date_from ? Date.parse(j.date_from + 'T00:00:00Z') : -Infinity, t = j.date_to ? Date.parse(j.date_to + 'T00:00:00Z') : Infinity;
+    if (!isNaN(f) && !isNaN(t)) plan.time = { col: di, from: f, to: t, label: { en: (j.date_from || '…') + ' → ' + (j.date_to || '…'), ar: (j.date_from || '…') + ' ← ' + (j.date_to || '…') } };
+  }
+  if ((plan.agg === 'max' || plan.agg === 'min') && plan.groupBy != null && plan.groupBy !== 'month'){ plan.rank = true; plan.sort = plan.agg === 'min' ? 'asc' : 'desc'; plan.agg = plan.measure == null ? 'count' : 'sum'; }
+  return plan;
+}
+
+/* ---------- run the plan on the data ---------- */
+function execute(plan){
+  var rows = DS.rows.filter(function(r){
+    for (var i = 0; i < plan.filters.length; i++){ var f = plan.filters[i]; if (f.values.indexOf(String(r[f.col])) < 0) return false; }
+    if (plan.time){ var d = r[plan.time.col]; if (!d || d.getTime() < plan.time.from || d.getTime() >= plan.time.to) return false; }
+    return true;
+  });
+  var mi = plan.measure, agg = plan.agg;
+  function reduce(list){
+    if (agg === 'count' || mi == null) return list.length;
+    var vals = list.map(function(r){ return r[mi]; }).filter(function(v){ return v != null; });
+    if (!vals.length) return null;
+    if (agg === 'avg') return vals.reduce(function(a, b){ return a + b; }, 0) / vals.length;
+    if (agg === 'max') return Math.max.apply(null, vals);
+    if (agg === 'min') return Math.min.apply(null, vals);
+    return vals.reduce(function(a, b){ return a + b; }, 0);
+  }
+  var out = { rows: rows, value: reduce(rows) };
+  if (plan.groupBy != null){
+    var map = new Map();
+    rows.forEach(function(r){
+      var k = plan.groupBy === 'month' ? (r[DS.dateCol] ? r[DS.dateCol].getUTCFullYear() + '-' + String(r[DS.dateCol].getUTCMonth() + 1).padStart(2, '0') : null) : r[plan.groupBy];
+      if (k == null) return; (map.get(k) || map.set(k, []).get(k)).push(r);
+    });
+    var groups = []; map.forEach(function(list, k){ groups.push({ key: k, value: reduce(list), n: list.length }); });
+    groups = groups.filter(function(g){ return g.value != null; });
+    if (plan.groupBy === 'month') groups.sort(function(a, b){ return a.key < b.key ? -1 : 1; });
+    else groups.sort(function(a, b){ return plan.sort === 'asc' ? a.value - b.value : b.value - a.value; });
+    out.groups = groups;
+  } else if ((agg === 'max' || agg === 'min') && mi != null){
+    out.record = rows.filter(function(r){ return r[mi] === out.value; })[0];
+  }
+  return out;
+}
+
+/* ---------- write the answer ---------- */
+var AGG_WORD = { en: { sum: 'Total', avg: 'Average', count: 'Number of rows', max: 'Highest', min: 'Lowest' }, ar: { sum: 'إجمالي', avg: 'متوسط', count: 'عدد الصفوف', max: 'أعلى', min: 'أقل' } };
+function monthLabel(k, lang){ var p = k.split('-'); return (lang === 'ar' ? MONTHS_AR_SHOW : MONTHS)[+p[1] - 1] + ' ' + p[0]; }
+function scopeText(plan, lang){
+  var parts = plan.filters.filter(function(f){ return !(plan.groupBy === f.col); }).map(function(f){ return '<bdi>' + esc(DS.cols[f.col].name + ': ' + f.values.join(lang === 'ar' ? ' / ' : ' or ')) + '</bdi>'; });
+  if (plan.time) parts.push('<bdi>' + esc(plan.time.label[lang]) + '</bdi>');
+  if (!parts.length) return '';
+  return lang === 'ar' ? ' (' + parts.join('، ') + ')' : ' (' + parts.join(', ') + ')';
+}
+function metricText(plan, lang){
+  if (plan.agg === 'count' || plan.measure == null){
+    var w = plan.countWord ? norm(plan.countWord) : null;
+    if (lang === 'ar') return w && /[\u0600-\u06FF]/.test(w) ? 'عدد ' + (w.indexOf('ال') === 0 ? '' : 'ال') + plan.countWord : 'عدد الصفوف';
+    return 'Number of ' + (w && !/[\u0600-\u06FF]/.test(w) ? w.replace(/^(deal|row|record|order|transaction|lead|ticket)$/, '$1s') : 'rows');
+  }
+  return AGG_WORD[lang][plan.agg] + ' ' + bd(DS.cols[plan.measure].name);
+}
+function answer(plan, res){
+  var L = plan.lang, ar = L === 'ar', v = function(n){ return '<b>' + esc(fmt(n, L)) + '</b>'; };
+  if (!res.rows.length) return ar ? 'ما لقيت أي صفوف تطابق السؤال' + scopeText(plan, L) + '.' : 'No rows match this question' + scopeText(plan, L) + '.';
+  if (plan.groupBy != null && res.groups && res.groups.length){
+    var g = res.groups, gname = plan.groupBy === 'month' ? (ar ? 'الشهر' : 'month') : bd(DS.cols[plan.groupBy].name);
+    var sum = g.reduce(function(s, x){ return s + Math.max(0, x.value); }, 0) || 1;
+    var share = function(x){ return (plan.agg === 'sum' || plan.agg === 'count') ? (ar ? ' (' + Math.round(x.value / sum * 100) + '% من الإجمالي)' : ' (' + Math.round(x.value / sum * 100) + '% of the total)') : ''; };
+    if (plan.groupBy === 'month'){
+      var best = g.reduce(function(m, x){ return x.value > m.value ? x : m; }), last = g[g.length - 1], prev = g[g.length - 2];
+      var ch = prev && prev.value ? Math.round((last.value - prev.value) / Math.abs(prev.value) * 100) : null;
+      return ar
+        ? metricText(plan, L) + ' حسب الشهر' + scopeText(plan, L) + ': أفضل شهر <b>' + monthLabel(best.key, L) + '</b> بقيمة ' + v(best.value) + (ch != null ? '، وآخر شهر ' + (ch >= 0 ? 'ارتفع ' : 'انخفض ') + Math.abs(ch) + '% عن اللي قبله' : '') + '.'
+        : metricText(plan, L) + ' by month' + scopeText(plan, L) + ': best month was <b>' + monthLabel(best.key, L) + '</b> with ' + v(best.value) + (ch != null ? '; the latest month is ' + (ch >= 0 ? 'up ' : 'down ') + Math.abs(ch) + '% on the one before' : '') + '.';
+    }
+    var first = g[0], low = plan.sort === 'asc';
+    if (plan.rank || plan.top === 1){
+      return ar
+        ? (low ? 'الأقل' : 'الأعلى') + ' في ' + gname + scopeText(plan, L) + ' هو <b>' + bd(first.key) + '</b> — ' + metricText(plan, L) + ' ' + v(first.value) + share(first) + '.'
+        : (low ? 'Lowest ' : 'Top ') + gname + scopeText(plan, L) + ' is <b>' + bd(first.key) + '</b> — ' + metricText(plan, L) + ' ' + v(first.value) + share(first) + '.';
+    }
+    var shown = plan.top ? g.slice(0, plan.top) : g;
+    return ar
+      ? metricText(plan, L) + ' حسب ' + gname + scopeText(plan, L) + ': ' + shown.slice(0, 3).map(function(x){ return bd(x.key) + ' ' + v(x.value); }).join('، ') + (shown.length > 3 ? '، …' : '.')
+      : metricText(plan, L) + ' by ' + gname + scopeText(plan, L) + ': ' + shown.slice(0, 3).map(function(x){ return bd(x.key) + ' ' + v(x.value); }).join(', ') + (shown.length > 3 ? ', …' : '.');
+  }
+  if (res.record){
+    var ni = DS.cols.findIndex(function(c){ return (c.type === 'text' || c.type === 'category') && /اسم|name|موظف|طالب|عميل|employee|student|client|customer/i.test(c.name); });
+    if (ni < 0) ni = DS.cols.findIndex(function(c){ return c.type === 'text'; });
+    var who = ni > -1 ? res.record[ni] : null;
+    if (who != null && who !== '') return ar
+      ? (plan.agg === 'min' ? 'الأقل في ' : 'الأعلى في ') + bd(DS.cols[plan.measure].name) + scopeText(plan, L) + ' هو <b>' + bd(who) + '</b> — ' + v(res.value) + '. التفاصيل:'
+      : (plan.agg === 'min' ? 'Lowest ' : 'Highest ') + bd(DS.cols[plan.measure].name) + scopeText(plan, L) + ': <b>' + bd(who) + '</b> — ' + v(res.value) + '. Details:';
+    return ar ? metricText(plan, L) + scopeText(plan, L) + ' هو ' + v(res.value) + '، وهذا الصف:' : metricText(plan, L) + scopeText(plan, L) + ' is ' + v(res.value) + '. Here is the row:';
+  }
+  var extra = plan.measure != null && plan.agg !== 'count' ? (ar ? ' — ' + res.rows.length + ' صف' : ' — ' + res.rows.length + ' rows') : '';
+  return metricText(plan, L) + scopeText(plan, L) + (ar ? ' هو ' : ': ') + v(res.value) + extra + '.';
+}
+function howChips(plan){
+  var L = plan.lang, c = [];
+  c.push(plan.agg === 'count' || plan.measure == null ? (L === 'ar' ? 'عدّ الصفوف' : 'Count rows') : AGG_WORD[L][plan.agg] + ': ' + DS.cols[plan.measure].name);
+  plan.filters.forEach(function(f){ c.push(DS.cols[f.col].name + ' = ' + f.values.join(' / ')); });
+  if (plan.time) c.push(plan.time.label[L]);
+  if (plan.groupBy != null) c.push((L === 'ar' ? 'حسب ' : 'by ') + (plan.groupBy === 'month' ? (L === 'ar' ? 'الشهر' : 'month') : DS.cols[plan.groupBy].name));
+  if (plan.top) c.push((L === 'ar' ? 'أعلى ' : 'top ') + plan.top);
+  return '<div class="how"' + (L === 'ar' ? ' dir="rtl"' : '') + '>' + (L === 'ar' ? 'فهمت السؤال كذا:' : 'Understood as:') + ' ' + c.map(function(x){ return '<span class="t">' + esc(x) + '</span>'; }).join('') +
+    '<span class="eng">' + (plan.engine === 'claude' ? '✦ Claude' : (L === 'ar' ? 'قواعد' : 'rules')) + '</span></div>';
+}
+function bars(groups, plan){
+  var max = Math.max.apply(null, groups.map(function(g){ return Math.abs(g.value); })) || 1;
+  return '<div class="bars">' + groups.slice(0, 12).map(function(g, i){
+    return '<div class="b' + (i < (plan.top || 1) && (plan.rank || plan.top) ? ' top' : '') + '"><span class="lb" title="' + esc(g.key) + '">' + bd(g.key) + '</span><div class="track"><div class="fill" style="width:' + (Math.abs(g.value) / max * 100).toFixed(1) + '%"></div></div><span class="v">' + esc(fmt(g.value, plan.lang)) + '</span></div>';
+  }).join('') + '</div>' + (groups.length > 12 ? '<div class="note">+ ' + (groups.length - 12) + ' more</div>' : '');
+}
+function line(groups, plan){
+  var W = 720, H = 220, L = 50, R = 20, T = 12, B = 30, vals = groups.map(function(g){ return g.value; });
+  var max = Math.max.apply(null, vals), min = Math.min(0, Math.min.apply(null, vals)); if (max === min) max = min + 1;
+  var x = function(i){ return L + (vals.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (vals.length - 1)); };
+  var y = function(v){ return T + (H - T - B) * (1 - (v - min) / (max - min)); };
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Trend">';
+  for (var k = 0; k <= 3; k++){ var gv = min + (max - min) * k / 3; s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '" stroke="#e4e9e4"/><text x="' + (L - 6) + '" y="' + (y(gv) + 4) + '" text-anchor="end">' + esc(fmt(gv)) + '</text>'; }
+  var pts = vals.map(function(v, i){ return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+  s += '<polygon points="' + x(0) + ',' + y(min) + ' ' + pts + ' ' + x(vals.length - 1) + ',' + y(min) + '" fill="#127a4b" opacity=".1"/><polyline points="' + pts + '" fill="none" stroke="#127a4b" stroke-width="2.5"/>';
+  var step = Math.ceil(vals.length / 8);
+  groups.forEach(function(g, i){
+    s += '<circle cx="' + x(i) + '" cy="' + y(g.value) + '" r="3.5" fill="#fff" stroke="#127a4b" stroke-width="2"><title>' + esc(monthLabel(g.key, 'en')) + ': ' + esc(fmt(g.value)) + '</title></circle>';
+    if (i % step === 0) s += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="' + (i === 0 ? 'start' : 'middle') + '">' + esc(MONTHS[+g.key.split('-')[1] - 1] + ' ' + g.key.slice(2, 4)) + '</text>';
+  });
+  return s + '</svg>';
+}
+function recordTable(r){
+  return '<div class="tw"><table><tr>' + DS.cols.map(function(c){ return '<th>' + esc(c.name) + '</th>'; }).join('') + '</tr><tr>' +
+    r.map(function(v, i){ return '<td>' + (v == null ? '' : DS.cols[i].type === 'date' ? fmtDate(v) : DS.cols[i].type === 'number' ? v.toLocaleString('en-US') : esc(v)) + '</td>'; }).join('') + '</tr></table></div>';
+}
+
+/* ---------- school report ---------- */
+function detectSchool(){
+  var cols = DS.cols;
+  var find = function(re, type, not){ return cols.findIndex(function(c){ return (!type || c.type === type) && re.test(c.name) && !(not && not.test(c.name)); }); };
+  var S = {
+    score: cols.findIndex(function(c){ return c.type === 'number' && c.max <= 100 && /درج|علام|score|grade|mark/i.test(c.name); }),
+    student: find(/طالب|اسم|student|name/i, 'category'),
+    id: cols.findIndex(function(c){ return c.type === 'number' && ID_LIKE.test(c.name) && /طالب|student/i.test(c.name); }),
+    subject: find(/ماد|subject|course/i, 'category'),
+    cls: find(/فصل|شعب|class|section/i, 'category', /دراس|term|semester/i),
+    term: find(/دراس|term|semester/i, 'category'),
+    att: find(/حضور|attend/i, 'number'),
+    abs: find(/غياب|absen/i, 'number')
+  };
+  S.ok = S.score > -1 && S.student > -1;
+  return S;
+}
+function avgOf(list){ var v = list.filter(function(x){ return x != null && isFinite(x); }); return v.length ? v.reduce(function(a, b){ return a + b; }, 0) / v.length : null; }
+function r1(n){ return n == null ? '–' : (Math.round(n * 10) / 10).toString(); }
+function groupAvg(rows, key, val){
+  var m = new Map();
+  rows.forEach(function(r){ var k = r[key]; if (k == null) return; (m.get(k) || m.set(k, []).get(k)).push(r); });
+  var out = []; m.forEach(function(list, k){ out.push({ key: k, rows: list, avg: avgOf(list.map(function(r){ return r[val]; })) }); });
+  return out;
+}
+function miniBar(v, max, low){ return '<span class="rb"><i style="width:' + Math.max(2, Math.round(v / max * 100)) + '%;background:' + (low ? '#b23a3a' : '#127a4b') + '"></i></span>'; }
+function schoolReport(){
+  var S = detectSchool(); if (!S.ok) return null;
+  var rows = DS.rows, sc = S.score, PASS = 50;
+  var overall = avgOf(rows.map(function(r){ return r[sc]; }));
+  var passRate = rows.filter(function(r){ return r[sc] >= PASS; }).length / rows.length * 100;
+  // students
+  var st = new Map();
+  rows.forEach(function(r){
+    var key = S.id > -1 && r[S.id] != null ? r[S.id] : r[S.student]; if (key == null) return;
+    var o = st.get(key) || { name: r[S.student], cls: S.cls > -1 ? r[S.cls] : '', scores: [], fails: new Set(), att: [] };
+    o.scores.push(r[sc]); if (r[sc] != null && r[sc] < PASS && S.subject > -1) o.fails.add(r[S.subject]);
+    if (S.att > -1) o.att.push(r[S.att]);
+    st.set(key, o);
+  });
+  var students = []; st.forEach(function(o){ o.avg = avgOf(o.scores); o.attAvg = avgOf(o.att); students.push(o); });
+  var attOverall = S.att > -1 ? avgOf(rows.map(function(r){ return r[S.att]; })) : null;
+  var follow = students.filter(function(o){ return o.avg < 60 || o.fails.size || (o.attAvg != null && o.attAvg < 90); }).sort(function(a, b){ return a.avg - b.avg; });
+  var top = students.slice().sort(function(a, b){ return b.avg - a.avg; }).slice(0, 5);
+  var subj = S.subject > -1 ? groupAvg(rows, S.subject, sc).sort(function(a, b){ return a.avg - b.avg; }) : [];
+  subj.forEach(function(g){ g.fails = g.rows.filter(function(r){ return r[sc] < PASS; }).length; });
+  var cls = S.cls > -1 ? groupAvg(rows, S.cls, sc).sort(function(a, b){ return String(a.key).localeCompare(String(b.key)); }) : [];
+  cls.forEach(function(g){ g.att = S.att > -1 ? avgOf(g.rows.map(function(r){ return r[S.att]; })) : null; g.abs = S.abs > -1 ? avgOf(g.rows.map(function(r){ return r[S.abs]; })) : null; });
+  var terms = S.term > -1 ? groupAvg(rows, S.term, sc) : [];
+
+  var h = '<div class="report" dir="rtl"><div class="rhead"><div><h2>تقرير أداء الطالبات</h2><p>' + esc(DS.name) + ' · ' + new Date().toLocaleDateString('en-GB') + '</p></div><button type="button" class="btn rprint">طباعة / PDF</button></div>';
+  h += '<div class="rk"><div><b>' + students.length + '</b><span>طالبة</span></div><div><b>' + r1(overall) + '</b><span>متوسط الدرجات</span></div><div><b>' + Math.round(passRate) + '%</b><span>نسبة النجاح</span></div>' +
+    (attOverall != null ? '<div><b>' + r1(attOverall) + '%</b><span>متوسط الحضور</span></div>' : '') + '<div class="warn"><b>' + follow.length + '</b><span>تحتاج متابعة</span></div></div>';
+  // recommendations
+  var rec = [];
+  if (subj.length) rec.push('أضعف مادة <b>' + bd(subj[0].key) + '</b> بمتوسط ' + r1(subj[0].avg) + (subj[0].fails ? ' و' + subj[0].fails + ' حالة رسوب' : '') + ' — اقتراح: حصص تقوية ومراجعة قبل الاختبار.');
+  if (follow.length) rec.push('<b>' + follow.length + '</b> طالبة تحتاج متابعة (متوسط أقل من 60، أو رسوب في مادة، أو حضور أقل من 90%) — اقتراح: تواصل مع أولياء الأمور.');
+  if (cls.length > 1){ var bestC = cls.slice().sort(function(a, b){ return b.avg - a.avg; })[0]; rec.push('أعلى فصل في الدرجات <b>' + bd(bestC.key) + '</b> بمتوسط ' + r1(bestC.avg) + '.');
+    if (S.abs > -1){ var worstA = cls.slice().sort(function(a, b){ return b.abs - a.abs; })[0]; rec.push('أعلى غياب في فصل <b>' + bd(worstA.key) + '</b> — اقتراح: متابعة الحضور مع رائدة الفصل.'); } }
+  if (terms.length === 2){ var d = terms[1].avg - terms[0].avg; rec.push('متوسط ' + bd(terms[1].key) + ' ' + r1(terms[1].avg) + ' مقابل ' + bd(terms[0].key) + ' ' + r1(terms[0].avg) + ' (' + (d >= 0 ? 'تحسّن ' : 'تراجع ') + r1(Math.abs(d)) + ' درجة).'); }
+  h += '<h3>أهم الملاحظات</h3><ul class="rrec">' + rec.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul>';
+  // follow-up table
+  h += '<h3>طالبات يحتجن متابعة <small>(' + follow.length + ')</small></h3>';
+  h += follow.length ? '<table class="rt"><tr><th>الطالبة</th>' + (S.cls > -1 ? '<th>الفصل</th>' : '') + '<th>المتوسط</th><th>مواد الرسوب</th>' + (S.att > -1 ? '<th>الحضور</th>' : '') + '</tr>' +
+    follow.slice(0, 15).map(function(o){ return '<tr><td>' + esc(o.name) + '</td>' + (S.cls > -1 ? '<td>' + bd(o.cls) + '</td>' : '') + '<td class="' + (o.avg < 60 ? 'bad' : '') + '">' + r1(o.avg) + '</td><td>' + (o.fails.size ? esc(Array.from(o.fails).join('، ')) : '—') + '</td>' + (S.att > -1 ? '<td class="' + (o.attAvg < 90 ? 'bad' : '') + '">' + r1(o.attAvg) + '%</td>' : '') + '</tr>'; }).join('') + '</table>' +
+    (follow.length > 15 ? '<p class="note">و' + (follow.length - 15) + ' طالبات أخريات.</p>' : '') : '<p>لا توجد حالات تحتاج متابعة 👏</p>';
+  // subjects
+  if (subj.length){
+    var mx = Math.max.apply(null, subj.map(function(g){ return g.avg; }));
+    h += '<h3>المواد من الأضعف للأقوى</h3><table class="rt"><tr><th>المادة</th><th>المتوسط</th><th></th><th>رسوب</th></tr>' +
+      subj.map(function(g, i){ return '<tr><td>' + esc(g.key) + '</td><td>' + r1(g.avg) + '</td><td class="bc">' + miniBar(g.avg, mx, i === 0) + '</td><td>' + g.fails + '</td></tr>'; }).join('') + '</table>';
+  }
+  // classes
+  if (cls.length){
+    h += '<h3>مقارنة الفصول</h3><table class="rt"><tr><th>الفصل</th><th>متوسط الدرجات</th>' + (S.att > -1 ? '<th>متوسط الحضور</th>' : '') + (S.abs > -1 ? '<th>متوسط الغياب</th>' : '') + '</tr>' +
+      cls.map(function(g){ return '<tr><td>' + bd(g.key) + '</td><td>' + r1(g.avg) + '</td>' + (S.att > -1 ? '<td>' + r1(g.att) + '%</td>' : '') + (S.abs > -1 ? '<td>' + r1(g.abs) + '</td>' : '') + '</tr>'; }).join('') + '</table>';
+  }
+  // honor roll
+  h += '<h3>لوحة الشرف 🏅</h3><ol class="rtop">' + top.map(function(o){ return '<li><b>' + esc(o.name) + '</b>' + (o.cls ? ' · ' + bd(o.cls) : '') + ' — ' + r1(o.avg) + '</li>'; }).join('') + '</ol>';
+  h += '<p class="note">تقرير تلقائي من بيانات الملف · النجاح من ' + PASS + ' · لا يتم رفع الملف لأي مكان.</p></div>';
+  return h;
+}
+function runReport(){
+  var html = schoolReport();
+  if (!html){ addMsg('bot', '<div class="ans" dir="rtl">التقرير يحتاج ملف فيه عمود للدرجة وعمود لاسم الطالبة.</div>'); return; }
+  document.querySelectorAll('.msg.report-msg').forEach(function(m){ m.classList.remove('report-msg'); });
+  var m = addMsg('bot', html); m.classList.add('report-msg');
+}
+
+/* ---------- chat ---------- */
+function addMsg(who, html, rtl){
+  var d = document.createElement('div'); d.className = 'msg ' + who;
+  d.innerHTML = who === 'you' ? '<div class="bubble"' + (rtl ? ' dir="rtl"' : '') + '>' + html + '</div>' : '<div class="card"' + (rtl ? ' dir="rtl"' : '') + '>' + html + '</div>';
+  $('#inner').appendChild(d); $('#thread').scrollTop = $('#thread').scrollHeight; return d;
+}
+var busy = false;
+async function ask(question){
+  question = question.trim(); if (!question || !DS || busy) return;
+  if (/تقرير|report/i.test(question) && detectSchool().ok){ addMsg('you', esc(question), hasArabic(question)); runReport(); return; }
+  busy = true; $('#send').disabled = true;
+  var rtl = hasArabic(question);
+  addMsg('you', esc(question), rtl);
+  var wait = addMsg('bot', '<span class="typing">' + (rtl ? 'أحلل الملف…' : 'Analysing…') + '</span>', rtl);
+  var plan, note = '';
+  try {
+    if ($('#aiOn').checked){
+      try { plan = await understandWithClaude(question); }
+      catch (e){ plan = understand(question); note = '<div class="note">⚠ ' + esc(e.message) + ' — ' + (rtl ? 'استخدمت القواعد بدلاً منه.' : 'used the built-in rules instead.') + '</div>'; }
+    } else plan = understand(question);
+    if (!plan.understood){
+      wait.querySelector('.card').innerHTML = (rtl ? 'ما فهمت السؤال تماماً. جرّب تذكر عمود أو قيمة من الملف، مثل:' : 'I could not match that to the file. Try mentioning a column or a value, for example:') + suggestHtml(rtl ? 'ar' : 'en') + note;
+    } else {
+      var res = execute(plan), viz = '';
+      if (res.groups && res.groups.length) viz = plan.groupBy === 'month' ? line(res.groups, plan) : bars(plan.top && !plan.rank ? res.groups.slice(0, plan.top) : res.groups, plan);
+      else if (res.record) viz = recordTable(res.record);
+      wait.querySelector('.card').innerHTML = '<div class="ans">' + answer(plan, res) + '</div>' + (viz ? '<div class="viz">' + viz + '</div>' : '') + howChips(plan) + note;
+    }
+  } catch (e){
+    wait.querySelector('.card').textContent = (rtl ? 'صار خطأ: ' : 'Something went wrong: ') + e.message;
+  }
+  $('#thread').scrollTop = $('#thread').scrollHeight;
+  busy = false; $('#send').disabled = false; $('#q').focus();
+}
+
+/* ---------- suggestions from the file ---------- */
+function suggestions(lang){
+  var c = DS.cols, idx = function(t){ return c.map(function(x, i){ return x.type === t ? i : -1; }).filter(function(i){ return i >= 0; }); };
+  var cats = idx('category').filter(function(i){ return c[i].uniq >= 2 && c[i].uniq <= 30; }), m = defaultMeasure(), dates = idx('date');
+  var mn = m != null ? c[m].name : null, s = [];
+  if (DS.sample){
+    return lang === 'ar'
+      ? ['كم إجمالي المبيعات في الرياض؟', 'مين أفضل وسيط؟', 'كم مبيعات بثينة الشهر الماضي؟', 'كم عدد الصفقات المغلقة؟', 'متوسط السعر للفلل في جدة', 'أي مصدر جاب أكثر صفقات؟']
+      : ['What is the total price in Riyadh?', 'Who is the best agent?', 'Shurooq sales this year', 'How many deals are Won?', 'Average price of villas in Jeddah', 'Sales trend by month', 'Top 3 districts by price'];
+  }
+  if (lang === 'ar'){
+    if (mn) s.push('كم إجمالي ' + mn + '؟');
+    if (mn && cats[0] != null) s.push(mn + ' حسب ' + c[cats[0]].name);
+    if (cats[0] != null) s.push('مين أفضل ' + c[cats[0]].name + '؟');
+    if (cats[1] != null) s.push('كم عدد الصفوف حسب ' + c[cats[1]].name + '؟');
+    if (mn && dates.length) s.push(mn + ' حسب الشهر');
+    if (mn) s.push('متوسط ' + mn);
+  } else {
+    if (mn) s.push('What is the total ' + mn + '?');
+    if (mn && cats[0] != null) s.push(mn + ' by ' + c[cats[0]].name);
+    if (cats[0] != null) s.push('Which ' + c[cats[0]].name + ' has the highest ' + (mn || 'count') + '?');
+    if (cats[0] != null) s.push('How many rows where ' + c[cats[0]].name + ' is ' + DS.values[cats[0]][0] + '?');
+    if (mn && dates.length) s.push(mn + ' trend by month');
+    if (mn && cats[1] != null) s.push('Top 3 ' + c[cats[1]].name + ' by ' + mn);
+  }
+  return s;
+}
+function suggestHtml(lang){
+  return '<div class="sugs" style="justify-content:flex-start;margin-top:10px">' + suggestions(lang).map(function(t){ return '<button type="button" class="sug" dir="' + (hasArabic(t) ? 'rtl' : 'ltr') + '">' + esc(t) + '</button>'; }).join('') + '</div>';
+}
+
+/* ---------- loading ---------- */
+function load(name, table, isSample){
+  try { DS = buildDataset(name, table); } catch (e){ $('#err').textContent = e.message; return; }
+  DS.sample = !!isSample;
+  DS.values = DS.cols.map(function(c, i){ return c.type === 'category' ? Array.from(new Set(DS.rows.map(function(r){ return r[i]; }).filter(function(v){ return v != null; }).map(String))).sort() : null; });
+  DS.dateCol = DS.cols.findIndex(function(c){ return c.type === 'date'; });
+  $('#fileName').innerHTML = esc(name) + '<small>' + DS.rows.length.toLocaleString('en-US') + ' rows · ' + DS.cols.length + ' columns</small>';
+  $('#cols').innerHTML = DS.cols.map(function(c){ return '<span class="col ' + c.type + '" title="' + c.type + '">' + esc(c.name) + '</span>'; }).join('');
+  $('#colBox').classList.remove('hidden');
+  $('#hero').classList.add('hidden');
+  $('#inner').querySelectorAll('.msg').forEach(function(m){ m.remove(); });
+  addMsg('bot', '<div class="ans">' + (isSample ? 'Sample loaded: fictional real-estate deals.' : 'File loaded.') + ' Ask me anything about it — in English or Arabic.</div>' +
+    '<div class="note" dir="rtl">اسأل أي سؤال عن الملف بالعربي أو الإنجليزي.</div>' + (detectSchool().ok ? '<div class="sugs" style="justify-content:flex-start;margin-top:10px"><button type="button" class="sug sug-report" data-report="1">📋 School report · تقرير المدرسة</button></div>' : '') + suggestHtml('en') + suggestHtml('ar'));
+  $('#q').disabled = false; $('#send').disabled = false; $('#q').placeholder = 'Ask a question… / اكتب سؤالك'; $('#q').focus();
+}
+async function handleFile(f){
+  if (!f) return; $('#err').textContent = '';
+  $('#fileName').innerHTML = esc(f.name) + '<small>Reading file… ' + (f.size > 1e6 ? (f.size / 1e6).toFixed(1) + ' MB' : Math.round(f.size / 1e3) + ' KB') + '</small>';
+  await new Promise(function(r){ setTimeout(r, 30); });
+  var ext = (f.name.split('.').pop() || '').toLowerCase();
+  try {
+    if (ext === 'xlsx' || ext === 'xlsm') load(f.name, await parseXLSX(await f.arrayBuffer()));
+    else if (ext === 'xls'){ $('#hero').classList.remove('hidden'); $('#err').textContent = 'Old .xls files are not supported. Save as .xlsx or .csv.'; }
+    else load(f.name, parseCSV(await f.text()));
+  } catch (e){ $('#hero').classList.remove('hidden'); $('#err').textContent = 'Could not read this file: ' + e.message; }
+}
+function sample(){
+  var seed = 11, rnd = function(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  var pick = function(a){ return a[Math.floor(rnd() * a.length)]; };
+  var cities = [['Riyadh', ['Al Malqa', 'Hittin', 'Al Narjis', 'Al Yasmin', 'Olaya'], 1.25], ['Jeddah', ['Al Shati', 'Obhur', 'Al Rawdah'], 1.0], ['Dammam', ['Al Faisaliyah', 'Al Shulah'], 0.8], ['Khobar', ['Al Olaya', 'Al Aqrabiyah'], 0.9], ['Tabuk', ['Al Muruj', 'King Fahd'], 0.55]];
+  var types = [['Apartment', 900000], ['Villa', 2600000], ['Townhouse', 1600000], ['Land', 1300000], ['Office', 3000000]];
+  var agents = ['Bothynah Alsnany', 'Mohammed Salem', 'Basma Salem', 'Shurooq Ahmed'], sources = ['Website', 'Instagram', 'Referral', 'Walk-in', 'Snapchat'];
+  var t = [['Date', 'City', 'District', 'Property Type', 'Agent', 'Source', 'Price (SAR)', 'Area (m2)', 'Status']];
+  var end = Date.UTC(2026, 8, 28);
+  for (var i = 0; i < 260; i++){
+    var c = pick(cities), ty = pick(types), d = new Date(end - Math.floor(rnd() * 365) * 864e5);
+    var agent = rnd() < 0.18 ? 'Mohammed Salem' : pick(agents);
+    var price = Math.round(ty[1] * c[2] * (0.75 + rnd() * 0.6) / 1000) * 1000;
+    var area = Math.round((ty[0] === 'Apartment' ? 140 : ty[0] === 'Villa' ? 420 : ty[0] === 'Townhouse' ? 260 : ty[0] === 'Land' ? 600 : 300) * (0.8 + rnd() * 0.5));
+    var st = rnd() < 0.42 ? 'Won' : rnd() < 0.5 ? 'Lost' : 'Open';
+    t.push([d.toISOString().slice(0, 10), c[0], pick(c[1]), ty[0], agent, pick(sources), price, area, st]);
+  }
+  return t;
+}
+
+/* ---------- events ---------- */
+['#btnPick', '#btnPick2'].forEach(function(s){ $(s).onclick = function(){ $('#file').value = ''; $('#file').click(); }; });
+['#btnSample', '#btnSample2'].forEach(function(s){ $(s).onclick = function(){ load('real-estate-deals-sample.csv', sample(), true); }; });
+$('#file').onchange = function(e){ handleFile(e.target.files[0]); };
+['dragenter', 'dragover'].forEach(function(ev){ document.addEventListener(ev, function(e){ e.preventDefault(); $('#drop').classList.add('over'); }); });
+['dragleave', 'drop'].forEach(function(ev){ document.addEventListener(ev, function(e){ e.preventDefault(); if (ev === 'drop' || !e.relatedTarget) $('#drop').classList.remove('over'); }); });
+document.addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files[0]; if (f) handleFile(f); });
+$('#askForm').onsubmit = function(e){ e.preventDefault(); var v = $('#q').value; $('#q').value = ''; ask(v); };
+$('#inner').addEventListener('click', function(e){ if (e.target.closest('.rprint')){ window.print(); return; } var b = e.target.closest('.sug'); if (!b) return; if (b.getAttribute('data-report')){ addMsg('you', 'تقرير المدرسة', true); runReport(); return; } ask(b.textContent); });
+$('#aiOn').onchange = function(){ $('#aiMore').classList.toggle('hidden', !this.checked); $('#aiOff').classList.toggle('hidden', this.checked); };
+</script>
+</body>
+</html>
