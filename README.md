@@ -6,7 +6,7 @@ So I built this: upload the sheet, type the question in Arabic or English, get t
 
 **Try it:** https://noorsl.github.io/ask-your-excel/ (click **Try sample data**)
 
-![Ask your Excel](docs/screenshot.png)
+![Ask your Excel](docs/ask-excel-1.png)
 
 ## Questions you can ask
 
@@ -21,7 +21,7 @@ So I built this: upload the sheet, type the question in Arabic or English, get t
 
 Under every answer there is a small line, **“Understood as”**, showing exactly what the tool calculated (for example *Total: Price · Agent = Bothynah · Aug 2026*). If it misunderstood you, you see it straight away.
 
-![Arabic questions](docs/arabic.png)
+![More questions](docs/ask-excel-2.png)
 
 ## How it works
 
