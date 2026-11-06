@@ -19,7 +19,7 @@ The sample file is made-up real estate deals. Try:
 - Sales trend by month
 - Compare Riyadh and Jeddah / Top 3 districts by price
 
-**School report:** upload a grades file and click **📋 School report**. You get a printable report: students who need follow-up, weakest subject, class comparison, attendance and an honor roll.
+School report: upload a grades file (try grades_1447.xlsx in this repo; the students are made up) and click 📋 School report. You get a printable report: students who need follow-up, weakest subject, class comparison, attendance and an honor roll.
 
 Under every answer there is a small line, **“Understood as”**, showing exactly what the tool calculated (for example *Total: Price (SAR) · Agent = Jawaher Saad · Aug 2026*). If it misunderstood you, you see it straight away.
 
