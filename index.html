@@ -396,7 +396,7 @@ var VAL_SYN = {
   villa:['فيلا','فلل','فله'], apartment:['شقه','شقق'], land:['ارض','اراضي'], office:['مكتب','مكاتب'], shop:['محل','محلات'], townhouse:['تاون هاوس','دوبلكس'],
   won:['مغلقه','ناجحه','تم البيع','مكسوبه','مقفله'], lost:['خاسره','ضايعه','مفقوده','ملغيه'], open:['مفتوحه','جاريه','قيد المتابعه'],
   website:['موقع','الموقع'], instagram:['انستقرام','انستغرام'], snapchat:['سناب','سناب شات'], referral:['توصيه','احاله'], 'walk in':['زياره','حضوري'],
-  'bothynah alsnany':['بثينه','بثينه السناني','bothynah'], 'mohammed salem':['محمد','محمد سالم','mohammed','mohamed','muhammad'], 'basma salem':['بسمه','بسمه سالم','basma'], 'shurooq ahmed':['شروق','شروق احمد','shurooq','shorouq'], buy:['شراء'], rent:['ايجار']
+  'jawaher saad':['جواهر','جواهر سعد','jawaher','jawahir'], 'sultan fahad':['سلطان','سلطان فهد','sultan'], 'haifa nasser':['هيفاء','هيفاء ناصر','haifa','haifaa'], 'turki majed':['تركي','تركي ماجد','turki'], buy:['شراء'], rent:['ايجار']
 };
 function arWordsFor(key){ return COL_SYN[key] || []; }
 
@@ -854,8 +854,8 @@ function suggestions(lang){
   var mn = m != null ? c[m].name : null, s = [];
   if (DS.sample){
     return lang === 'ar'
-      ? ['كم إجمالي المبيعات في الرياض؟', 'مين أفضل وسيط؟', 'كم مبيعات بثينة الشهر الماضي؟', 'كم عدد الصفقات المغلقة؟', 'متوسط السعر للفلل في جدة', 'أي مصدر جاب أكثر صفقات؟']
-      : ['What is the total price in Riyadh?', 'Who is the best agent?', 'Shurooq sales this year', 'How many deals are Won?', 'Average price of villas in Jeddah', 'Sales trend by month', 'Top 3 districts by price'];
+      ? ['كم إجمالي المبيعات في الرياض؟', 'مين أفضل وسيط؟', 'كم مبيعات جواهر الشهر الماضي؟', 'كم عدد الصفقات المغلقة؟', 'متوسط السعر للفلل في جدة', 'أي مصدر جاب أكثر صفقات؟']
+      : ['What is the total price in Riyadh?', 'Who is the best agent?', 'Haifa sales this year', 'How many deals are Won?', 'Average price of villas in Jeddah', 'Sales trend by month', 'Top 3 districts by price'];
   }
   if (lang === 'ar'){
     if (mn) s.push('كم إجمالي ' + mn + '؟');
@@ -909,12 +909,12 @@ function sample(){
   var pick = function(a){ return a[Math.floor(rnd() * a.length)]; };
   var cities = [['Riyadh', ['Al Malqa', 'Hittin', 'Al Narjis', 'Al Yasmin', 'Olaya'], 1.25], ['Jeddah', ['Al Shati', 'Obhur', 'Al Rawdah'], 1.0], ['Dammam', ['Al Faisaliyah', 'Al Shulah'], 0.8], ['Khobar', ['Al Olaya', 'Al Aqrabiyah'], 0.9], ['Tabuk', ['Al Muruj', 'King Fahd'], 0.55]];
   var types = [['Apartment', 900000], ['Villa', 2600000], ['Townhouse', 1600000], ['Land', 1300000], ['Office', 3000000]];
-  var agents = ['Bothynah Alsnany', 'Mohammed Salem', 'Basma Salem', 'Shurooq Ahmed'], sources = ['Website', 'Instagram', 'Referral', 'Walk-in', 'Snapchat'];
+  var agents = ['Jawaher Saad', 'Sultan Fahad', 'Haifa Nasser', 'Turki Majed'], sources = ['Website', 'Instagram', 'Referral', 'Walk-in', 'Snapchat'];
   var t = [['Date', 'City', 'District', 'Property Type', 'Agent', 'Source', 'Price (SAR)', 'Area (m2)', 'Status']];
   var end = Date.UTC(2026, 8, 28);
   for (var i = 0; i < 260; i++){
     var c = pick(cities), ty = pick(types), d = new Date(end - Math.floor(rnd() * 365) * 864e5);
-    var agent = rnd() < 0.18 ? 'Mohammed Salem' : pick(agents);
+    var agent = rnd() < 0.18 ? 'Sultan Fahad' : pick(agents);
     var price = Math.round(ty[1] * c[2] * (0.75 + rnd() * 0.6) / 1000) * 1000;
     var area = Math.round((ty[0] === 'Apartment' ? 140 : ty[0] === 'Villa' ? 420 : ty[0] === 'Townhouse' ? 260 : ty[0] === 'Land' ? 600 : 300) * (0.8 + rnd() * 0.5));
     var st = rnd() < 0.42 ? 'Won' : rnd() < 0.5 ? 'Lost' : 'Open';
