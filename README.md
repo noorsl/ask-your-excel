@@ -12,14 +12,19 @@ So I made this: upload the sheet, type the question in Arabic or English, and ge
 
 The sample file is made-up real estate deals. Try:
 
-- مين أفضل وسيط؟
-- كم مبيعات جواهر الشهر الماضي؟
-- متوسط السعر للفلل في جدة
+**In English**
+
 - Who is the best agent?
 - How many deals are Won?
 - Sales trend by month
 - Compare Riyadh and Jeddah
 - Top 3 districts by price
+
+**بالعربي**
+
+- مين أفضل وسيط؟
+- كم مبيعات جواهر الشهر الماضي؟
+- متوسط السعر للفلل في جدة
 
 **School report:** upload a grades file (try `grades_1447.xlsx` in this repo; the students are made up) and click **📋 School report**. You get a printable report: students who need follow-up, weakest subject, class comparison, attendance and an honor roll.
 
