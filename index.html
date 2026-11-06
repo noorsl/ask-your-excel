@@ -36,10 +36,6 @@ aside{background:var(--panel);border-right:1px solid var(--line);padding:18px;di
 .col.number{background:var(--green-soft);color:var(--green)}
 .col.date{background:#e5edf8;color:#2f5f9a}
 .col.category{background:#f6efd9;color:#7d5c0f}
-.ai label{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}
-.ai .more{margin-top:10px;display:grid;gap:8px}
-.ai input[type=password],.ai select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
-.ai p{margin:0;color:var(--muted);font-size:12.5px}
 .priv{font-size:12.5px;color:var(--muted);margin-top:auto}
 main{display:flex;flex-direction:column;min-width:0;height:100vh}
 .thread{flex:1;overflow-y:auto;padding:24px clamp(16px,4vw,48px) 12px}
@@ -64,7 +60,6 @@ main{display:flex;flex-direction:column;min-width:0;height:100vh}
 .ans b{font-weight:700;color:var(--green)}
 .how{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center;font-size:12.5px;color:var(--muted)}
 .how span.t{background:#eef1ed;color:var(--ink);border-radius:6px;padding:1px 7px}
-.how .eng{margin-left:auto;font-weight:600;color:var(--green)}
 .viz{margin-top:12px}
 .bars .b{display:grid;grid-template-columns:minmax(70px,30%) 1fr auto;gap:10px;align-items:center;margin:6px 0;font-size:14px}
 .bars .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -121,19 +116,6 @@ th{color:var(--muted);font-size:12px;text-transform:uppercase}
     <div class="box hidden" id="colBox">
       <h2>Columns</h2>
       <div class="cols" id="cols"></div>
-    </div>
-    <div class="box ai">
-      <h2>Smart mode (optional)</h2>
-      <label><input type="checkbox" id="aiOn"> Use Claude AI to understand any question</label>
-      <div class="more hidden" id="aiMore">
-        <input type="password" id="aiKey" placeholder="Your Anthropic API key" autocomplete="off">
-        <select id="aiModel">
-          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast, low cost)</option>
-          <option value="claude-sonnet-5">Claude Sonnet 5</option>
-        </select>
-        <p>The key stays in this tab only and is never saved. Claude receives only column names and category values — never your rows. All calculations run in your browser.</p>
-      </div>
-      <p id="aiOff" style="margin-top:6px">Off: questions are understood by built-in rules. Free, works offline.</p>
     </div>
     <div class="priv">🔒 Your file is read in your browser and never uploaded.</div>
   </aside>
@@ -554,49 +536,6 @@ function understand(question){
   return plan;
 }
 
-/* ---------- optional: Claude turns the question into the same plan ---------- */
-async function understandWithClaude(question){
-  var key = $('#aiKey').value.trim();
-  if (!key) throw new Error('Add your API key in Smart mode, or turn Smart mode off.');
-  var schema = DS.cols.map(function(c, i){
-    var s = '- "' + c.name + '" (' + c.type + ')';
-    if (c.type === 'category') s += ' values: ' + JSON.stringify(DS.values[i].slice(0, 40));
-    if (c.type === 'date' && isFinite(c.min)) s += ' from ' + new Date(c.min).toISOString().slice(0, 10) + ' to ' + new Date(c.max).toISOString().slice(0, 10);
-    return s;
-  }).join('\n');
-  var system = 'You turn a question about a spreadsheet into a JSON query plan. Columns:\n' + schema +
-    '\nReturn ONLY JSON: {"agg":"sum|avg|count|max|min","measure":"numeric column name or null","group_by":"category column name, \\"month\\", or null","filters":[{"column":"name","values":["exact values from the list"]}],"date_from":"YYYY-MM-DD or null","date_to":"YYYY-MM-DD (exclusive) or null","top":number or null,"sort":"desc|asc"}.' +
-    ' For "which/who is best/highest X" use agg "sum" (or "count" for number of rows), group_by X, sort desc, top 1. Use only the columns and values listed. The question may be Arabic. If the question cannot be answered from these columns, return {"unanswerable":true}.';
-  var res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: $('#aiModel').value, max_tokens: 500, system: system, messages: [{ role: 'user', content: question }] })
-  });
-  var data = await res.json().catch(function(){ return {}; });
-  if (!res.ok) throw new Error((data.error && data.error.message) || ('API error ' + res.status));
-  var text = (data.content || []).map(function(b){ return b.text || ''; }).join('');
-  var j = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
-  if (j.unanswerable) return { lang: hasArabic(question) ? 'ar' : 'en', understood: false, engine: 'claude' };
-  var byName = function(n){ if (n == null) return null; var k = DS.cols.findIndex(function(c){ return c.name.toLowerCase() === String(n).toLowerCase(); }); return k < 0 ? null : k; };
-  var plan = { lang: hasArabic(question) ? 'ar' : 'en', agg: ['sum','avg','count','max','min'].indexOf(j.agg) > -1 ? j.agg : 'sum', measure: byName(j.measure), groupBy: j.group_by === 'month' ? 'month' : byName(j.group_by),
-    filters: [], time: null, top: j.top ? +j.top : null, sort: j.sort === 'asc' ? 'asc' : 'desc', engine: 'claude', understood: true };
-  if (plan.measure != null && DS.cols[plan.measure].type !== 'number') plan.measure = null;
-  if (plan.groupBy != null && plan.groupBy !== 'month' && DS.cols[plan.groupBy].type !== 'category') plan.groupBy = null;
-  if (plan.measure == null && plan.agg !== 'count') plan.measure = defaultMeasure();
-  (j.filters || []).forEach(function(f){
-    var ci = byName(f.column); if (ci == null) return;
-    var vals = (f.values || []).map(String).filter(function(v){ return DS.values[ci] && DS.values[ci].indexOf(v) > -1; });
-    if (vals.length) plan.filters.push({ col: ci, values: vals });
-  });
-  var di = DS.cols.findIndex(function(c){ return c.type === 'date'; });
-  if (di > -1 && (j.date_from || j.date_to)){
-    var f = j.date_from ? Date.parse(j.date_from + 'T00:00:00Z') : -Infinity, t = j.date_to ? Date.parse(j.date_to + 'T00:00:00Z') : Infinity;
-    if (!isNaN(f) && !isNaN(t)) plan.time = { col: di, from: f, to: t, label: { en: (j.date_from || '…') + ' → ' + (j.date_to || '…'), ar: (j.date_from || '…') + ' ← ' + (j.date_to || '…') } };
-  }
-  if ((plan.agg === 'max' || plan.agg === 'min') && plan.groupBy != null && plan.groupBy !== 'month'){ plan.rank = true; plan.sort = plan.agg === 'min' ? 'asc' : 'desc'; plan.agg = plan.measure == null ? 'count' : 'sum'; }
-  return plan;
-}
-
 /* ---------- run the plan on the data ---------- */
 function execute(plan){
   var rows = DS.rows.filter(function(r){
@@ -693,8 +632,7 @@ function howChips(plan){
   if (plan.time) c.push(plan.time.label[L]);
   if (plan.groupBy != null) c.push((L === 'ar' ? 'حسب ' : 'by ') + (plan.groupBy === 'month' ? (L === 'ar' ? 'الشهر' : 'month') : DS.cols[plan.groupBy].name));
   if (plan.top) c.push((L === 'ar' ? 'أعلى ' : 'top ') + plan.top);
-  return '<div class="how"' + (L === 'ar' ? ' dir="rtl"' : '') + '>' + (L === 'ar' ? 'فهمت السؤال كذا:' : 'Understood as:') + ' ' + c.map(function(x){ return '<span class="t">' + esc(x) + '</span>'; }).join('') +
-    '<span class="eng">' + (plan.engine === 'claude' ? '✦ Claude' : (L === 'ar' ? 'قواعد' : 'rules')) + '</span></div>';
+  return '<div class="how"' + (L === 'ar' ? ' dir="rtl"' : '') + '>' + (L === 'ar' ? 'فهمت السؤال كذا:' : 'Understood as:') + ' ' + c.map(function(x){ return '<span class="t">' + esc(x) + '</span>'; }).join('') + '</div>';
 }
 function bars(groups, plan){
   var max = Math.max.apply(null, groups.map(function(g){ return Math.abs(g.value); })) || 1;
@@ -828,10 +766,7 @@ async function ask(question){
   var wait = addMsg('bot', '<span class="typing">' + (rtl ? 'أحلل الملف…' : 'Analysing…') + '</span>', rtl);
   var plan, note = '';
   try {
-    if ($('#aiOn').checked){
-      try { plan = await understandWithClaude(question); }
-      catch (e){ plan = understand(question); note = '<div class="note">⚠ ' + esc(e.message) + ' — ' + (rtl ? 'استخدمت القواعد بدلاً منه.' : 'used the built-in rules instead.') + '</div>'; }
-    } else plan = understand(question);
+    plan = understand(question);
     if (!plan.understood){
       wait.querySelector('.card').innerHTML = (rtl ? 'ما فهمت السؤال تماماً. جرّب تذكر عمود أو قيمة من الملف، مثل:' : 'I could not match that to the file. Try mentioning a column or a value, for example:') + suggestHtml(rtl ? 'ar' : 'en') + note;
     } else {
@@ -932,7 +867,6 @@ $('#file').onchange = function(e){ handleFile(e.target.files[0]); };
 document.addEventListener('drop', function(e){ var f = e.dataTransfer && e.dataTransfer.files[0]; if (f) handleFile(f); });
 $('#askForm').onsubmit = function(e){ e.preventDefault(); var v = $('#q').value; $('#q').value = ''; ask(v); };
 $('#inner').addEventListener('click', function(e){ if (e.target.closest('.rprint')){ window.print(); return; } var b = e.target.closest('.sug'); if (!b) return; if (b.getAttribute('data-report')){ addMsg('you', 'تقرير المدرسة', true); runReport(); return; } ask(b.textContent); });
-$('#aiOn').onchange = function(){ $('#aiMore').classList.toggle('hidden', !this.checked); $('#aiOff').classList.toggle('hidden', this.checked); };
 </script>
 </body>
 </html>

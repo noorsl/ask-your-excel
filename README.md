@@ -12,14 +12,16 @@ So I made this: upload the sheet, type the question in Arabic or English, and ge
 
 The sample file is made-up real estate deals. Try:
 
-- مين أفضل وسيط؟ / Who is the best agent?
+- مين أفضل وسيط؟
 - كم مبيعات جواهر الشهر الماضي؟
-- How many deals are Won?
 - متوسط السعر للفلل في جدة
+- Who is the best agent?
+- How many deals are Won?
 - Sales trend by month
-- Compare Riyadh and Jeddah / Top 3 districts by price
+- Compare Riyadh and Jeddah
+- Top 3 districts by price
 
-School report: upload a grades file (try grades_1447.xlsx in this repo; the students are made up) and click 📋 School report. You get a printable report: students who need follow-up, weakest subject, class comparison, attendance and an honor roll.
+**School report:** upload a grades file (try `grades_1447.xlsx` in this repo; the students are made up) and click **📋 School report**. You get a printable report: students who need follow-up, weakest subject, class comparison, attendance and an honor roll.
 
 Under every answer there is a small line, **“Understood as”**, showing exactly what the tool calculated (for example *Total: Price (SAR) · Agent = Jawaher Saad · Aug 2026*). If it misunderstood you, you see it straight away.
 
@@ -29,10 +31,7 @@ Under every answer there is a small line, **“Understood as”**, showing exact
 
 The question is turned into a small plan: what to calculate, which filters, which period and how to group. The plan then runs on the data inside your browser.
 
-Two ways to understand the question:
-
-1. **Built-in rules (default).** Free and works offline. It understands words like total, average, how many, best and lowest in both languages, plus months and “last month / this year”. A small dictionary links Arabic and English values, so “الرياض” finds “Riyadh” and “الفلل” finds “Villa”.
-2. **Smart mode with Claude (optional).** For any wording. You add your own API key, and it is kept only in the open tab. Claude sees the column names and category values only, never the rows.
+The tool understands words like total, average, how many, best and lowest in both languages, plus months and “last month / this year”. A small dictionary links Arabic and English values, so “الرياض” finds “Riyadh” and “الفلل” finds “Villa”. It is free and works offline.
 
 Your file is never uploaded anywhere.
 
